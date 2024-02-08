@@ -6,7 +6,7 @@ from authentication.models import *
 
 # User = get_user_model()
 
-class UserSerializer(serializers.ModelSerializer):
+class UserDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'password', 'age', 'is_active', 'can_be_contacted', 'can_data_be_shared']
@@ -17,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         instance = self.Meta.model(**validated_data)
-        
+        print(instance.age)
         # Adding the below line made it work for me.
         instance.is_active = True
         if password is not None:
@@ -25,3 +25,8 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username']

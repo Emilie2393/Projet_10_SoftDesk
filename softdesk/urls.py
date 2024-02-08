@@ -21,12 +21,10 @@ from authentication.views import *
 from projects.views import *
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
  
-# Ici nous créons notre routeur
 router = routers.SimpleRouter()
-# Puis lui déclarons une url basée sur le mot clé ‘category’ et notre view
-# afin que l’url générée soit celle que nous souhaitons ‘/api/category/’
-router.register('user-creation', UserRegisterView, basename='user-creation')
-router.register('project-creation', ProjectCreationView, basename='project-creation')
+router.register('user', UserRegisterView, basename='user')
+router.register('project', ProjectView, basename='project')
+router.register('issue', IssueView, basename='issue')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
