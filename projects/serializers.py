@@ -3,17 +3,17 @@ from projects.models import *
 from authentication.serializers import *
     
 
-class ProjectDetailsSerializer(serializers.ModelSerializer):
+class ProjectSerializer(serializers.ModelSerializer):
 
     contributors = serializers.SerializerMethodField()
     author = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
-        fields = ['name', 'author', 'contributors', 'description', 'type']
+        fields = ['id', 'name', 'author', 'contributors', 'description', 'type']
     
     def create(self, validated_data):
-        contributors = validated_data.pop("contributors", [])
+        validated_data.pop("contributors", [])
         user = self.context["request"].user
         validated_data["author"] = user
         instance = Project.objects.create(**validated_data)
@@ -27,38 +27,24 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
     
     def get_author(self, instance):
         queryset = instance.author
-        serializer = UserSerializer(queryset)
-        return serializer.data
-
-class ProjectSerializer(serializers.ModelSerializer):
-
-    author = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Project
-        fields = ['name', 'author', 'type']
-        # hide password into the get view
-    
-    def get_author(self, instance):
-        queryset = instance.author
         serializer = UserDetailsSerializer(queryset)
         return serializer.data
 
-class IssueDetailsSerializer(serializers.ModelSerializer):
+
+class IssueSerializer(serializers.ModelSerializer):
 
     author = serializers.SerializerMethodField()
     assigned_to = serializers.SerializerMethodField()
+    project_id = serializers.SerializerMethodField()
+
 
     class Meta:
         model = Issue
-        fields = ['project', 'name', 'author', 'assigned_to', 'description', 'priority', 'tag', 'status']
+        fields = ['id', 'project_id', 'name', 'author', 'assigned_to', 'description', 'priority', 'tag', 'status']
     
     def create(self, validated_data):
-        user = self.context["request"].user
-        validated_data["author"] = user
         instance = Issue.objects.create(**validated_data)
         project = Project.objects.get(id=instance.project.id)
-        project.contributors.add(user)
         project.contributors.add(instance.assigned_to.id)
         project.save()
         return instance
@@ -66,24 +52,41 @@ class IssueDetailsSerializer(serializers.ModelSerializer):
     def get_author(self, instance):
         queryset = instance.author
         serializer = UserSerializer(queryset)
-        return serializer.data['username']
+        return serializer.data
     
     def get_assigned_to(self, instance):
         queryset = instance.assigned_to
         serializer = UserSerializer(queryset)
-        return serializer.data['username']
+        return serializer.data
+    
+    def get_project_id(self, instance):
+        queryset = instance.project
+        serializer = ProjectSerializer(queryset)
+        return serializer.data['id']
 
-class IssueSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
 
     author = serializers.SerializerMethodField()
+    project_id = serializers.SerializerMethodField()
+    issue_id = serializers.SerializerMethodField()
+
     class Meta:
-        model = Issue
-        fields = ['project', 'name', 'author', 'priority', 'status']
+        model = Comment
+        fields = ['project_id', 'issue_id', 'author', 'description']
     
     def get_author(self, instance):
         queryset = instance.author
         serializer = UserSerializer(queryset)
-        return serializer.data['username']
+        return serializer.data
+    
+    def get_project_id(self, instance):
+        queryset = instance.issue.project
+        serializer = ProjectSerializer(queryset)
+        return serializer.data['id']
 
-
+    def get_issue_id(self, instance):
+        queryset = instance.issue
+        serializer = IssueSerializer(queryset)
+        return serializer.data['id']
+    
         

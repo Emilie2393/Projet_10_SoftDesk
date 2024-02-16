@@ -2,51 +2,69 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from projects.serializers import *
 from projects.models import *
+from authentication.models import * 
 from rest_framework.permissions import IsAuthenticated
 from .permissions import *
  
 class ProjectView(ModelViewSet):
     
     serializer_class = ProjectSerializer
-    detail_serializer_class = ProjectDetailsSerializer
     permission_classes = [IsAuthenticated, AuthorAuthentication]
-
-    def post(self, request):
-        self.detail_serializer_class.data == request.data
-        self.detail_serializer_class.save()
-        return Response(self.detail_serializer_class.data)
     
     def get_queryset(self):
-        return Project.objects.all()
+        return Project.objects.filter(contributors=self.request.user)
+    
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if 'contributors' in request.data:
+            instance.contributors.add(request.data['contributors'])
+            instance.save()
+            serializer = ProjectSerializer(instance)
+            return Response(serializer.data)
+        else:
+            return super().partial_update(request, *args, **kwargs)
 
-    def get_serializer_class(self):
-    # Si l'action demandée est retrieve nous retournons le serializer de détail
-        if self.action == 'list':
-            return self.serializer_class
-        elif self.action =='retrieve':
-            return self.detail_serializer_class
-        return super().get_serializer_class()
 
 class IssueView(ModelViewSet):
     
     serializer_class = IssueSerializer
-    detail_serializer_class = IssueDetailsSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, AuthorAuthentication]
 
-    def post(self, request):
-        self.detail_serializer_class.data == request.data
-        self.detail_serializer_class.save()
-        return Response(self.serializer_class.data)
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        assigned_to = User.objects.get(id=request.data['assigned_to'])
+        if serializer.is_valid():
+            serializer.save(project_id=request.data['project_id'], assigned_to=assigned_to, author=request.user)
+            return Response(serializer.data)
+        return Response(serializer.errors)
+    
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if 'assigned_to' in request.data:
+            instance.assigned_to = User.objects.get(id=request.data['assigned_to'])
+            instance.save()
+            serializer = IssueSerializer(instance)
+            return Response(serializer.data)
+        else:
+            return super().partial_update(request, *args, **kwargs)
     
     def get_queryset(self):
-        return Issue.objects.all()
+        projects = ProjectView.get_queryset(self)
+        print(projects)
+        return Issue.objects.filter(project__in=projects)
+
+class CommentView(ModelViewSet):
     
-    def get_serializer_class(self):
-    # Si l'action demandée est retrieve nous retournons le serializer de détail
-        if self.action == 'list':
-            return self.serializer_class
-        elif self.action =='retrieve':
-            return self.detail_serializer_class
-        return super().get_serializer_class()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated, AuthorAuthentication]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save(issue_id=request.data["issue_id"], author=request.user)
+            return Response(serializer.data)
+        return Response(serializer.errors)
     
-    
+    def get_queryset(self):
+        issues = IssueView.get_queryset(self)
+        return Comment.objects.filter(issue__in=issues)
