@@ -9,7 +9,7 @@ from .permissions import *
 class ProjectView(ModelViewSet):
     
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticated, AuthorAuthentication]
+    permission_classes = [IsAuthenticated, ProjectAuthentication]
     
     def get_queryset(self):
         return Project.objects.filter(contributors=self.request.user)
@@ -28,7 +28,7 @@ class ProjectView(ModelViewSet):
 class IssueView(ModelViewSet):
     
     serializer_class = IssueSerializer
-    permission_classes = [IsAuthenticated, AuthorAuthentication]
+    permission_classes = [IsAuthenticated, IssueAuthentication]
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -50,13 +50,12 @@ class IssueView(ModelViewSet):
     
     def get_queryset(self):
         projects = ProjectView.get_queryset(self)
-        print(projects)
         return Issue.objects.filter(project__in=projects)
 
 class CommentView(ModelViewSet):
     
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated, AuthorAuthentication]
+    permission_classes = [IsAuthenticated, CommentAuthentication]
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
