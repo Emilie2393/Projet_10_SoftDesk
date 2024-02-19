@@ -7,7 +7,7 @@
 - Activate it.
 - Run `pip install poetry`.
 - Run `poetry install`. These packages will appear :
-<img src='media/packages.PNG' width='200'/>
+<img src='media/packages.PNG' width='270'/>
 - Run `python manage.py migrate`. These migrations will appear :
-<img src='media/migrations.PNG' width='200'/>
+<img src='media/migrations.PNG' width='270'/>
 - Run `python manage.py runserver`
