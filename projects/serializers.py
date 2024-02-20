@@ -13,6 +13,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'author', 'contributors', 'description', 'type']
     
     def create(self, validated_data):
+        """ Replace contributor and author parameter by user """
         validated_data.pop("contributors", [])
         user = self.context["request"].user
         validated_data["author"] = user
@@ -43,6 +44,7 @@ class IssueSerializer(serializers.ModelSerializer):
         fields = ['id', 'project_id', 'name', 'author', 'assigned_to', 'description', 'priority', 'tag', 'status']
     
     def create(self, validated_data):
+        """ Create Issue instance and add user assigned_to to project contributors """
         instance = Issue.objects.create(**validated_data)
         project = Project.objects.get(id=instance.project.id)
         project.contributors.add(instance.assigned_to.id)
@@ -74,6 +76,7 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ['project_id', 'issue_id', 'author', 'description']
     
+    """ These get methods are using others models serializer """
     def get_author(self, instance):
         queryset = instance.author
         serializer = UserSerializer(queryset)
