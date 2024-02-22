@@ -48,9 +48,12 @@ class IssueView(ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         """ PATCH method overright to allow user to change assigned_to model parameter """
         instance = self.get_object()
+        
         if 'assigned_to' in request.data:
             instance.assigned_to = User.objects.get(id=request.data['assigned_to'])
             instance.save()
+            instance.project.contributors.add(request.data['assigned_to'])
+            instance.project.save()
             serializer = IssueSerializer(instance)
             return Response(serializer.data)
         else:

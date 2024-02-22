@@ -23,8 +23,8 @@ class IssueAuthentication(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in ['GET']:
             return bool(request.user in obj.project.contributors.all())
-        if request.method in ['PATCH', 'DELETE', 'PUT']:
-            return bool(obj.author == request.user)
+        """if request.method in ['PATCH', 'DELETE', 'PUT']:"""
+        return bool(obj.author == request.user)
 
 class CommentAuthentication(BasePermission):
 
