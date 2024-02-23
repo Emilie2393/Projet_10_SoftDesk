@@ -4,7 +4,7 @@ from authentication.models import *
 class UserDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'password', 'age', 'is_active', 'can_be_contacted', 'can_data_be_shared']
+        fields = ['id', 'username', 'password', 'age', 'is_active', 'can_be_contacted', 'can_data_be_shared']
         """ hide password into the get view """
         extra_kwargs = {'password': {'write_only': True}}
     
