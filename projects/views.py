@@ -9,7 +9,6 @@ from .permissions import *
 class ProjectView(ModelViewSet):
     
     serializer_class = ProjectSerializer
-    """ ProjectAuthentication class check if user is contributor of the project object before access it with GET method """
     permission_classes = [IsAuthenticated, ProjectAuthentication]
     
     def get_queryset(self):
@@ -32,12 +31,11 @@ class ProjectView(ModelViewSet):
 class IssueView(ModelViewSet):
     
     serializer_class = IssueSerializer
-    """ IssueAuthentication class check if user is contributor of the project object before posting an issue associated to it with POST method
-    Same verification is made to get any issue object. It also check if user is object author for method PATCH, DELETE OR PUT method """
     permission_classes = [IsAuthenticated, IssueAuthentication]
 
     def create(self, request, *args, **kwargs):
-        """ POST method overright get user for assigned_to model parameter and assign it with project_id and author to model parameters"""
+        """ POST method overright get user for assigned_to model parameter and assign it with project_id and
+        author to model parameters"""
         serializer = self.serializer_class(data=request.data)
         assigned_to = User.objects.get(id=request.data['assigned_to'])
         if serializer.is_valid():
@@ -68,8 +66,6 @@ class IssueView(ModelViewSet):
 class CommentView(ModelViewSet):
     
     serializer_class = CommentSerializer
-    """ CommentAuthentication check if user is a project contributor for the issue associated to the comment model for POST method
-    Same verification is made to get any issue object. It also check if user is object author for PATCH, DELETE OR PUT method """
     permission_classes = [IsAuthenticated, CommentAuthentication]
 
     def create(self, request, *args, **kwargs):
