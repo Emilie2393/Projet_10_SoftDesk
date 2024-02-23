@@ -11,7 +11,6 @@ class UserDetailsSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         instance = self.Meta.model(**validated_data)
-        """ Adding the below line made it work for me """
         instance.is_active = True
         if password is not None:
             """ set_password handle the hash """
